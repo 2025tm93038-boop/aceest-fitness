@@ -4,7 +4,10 @@ Version 1.1: Web UI with templates; JSON API under /api.
 """
 from flask import Flask, jsonify, render_template, request
 
+import db
+
 app = Flask(__name__)
+db.init_db()
 
 PROGRAMS = {
     "Fat Loss": {
@@ -40,6 +43,31 @@ def plan():
         plan=program,
         selected=selected if program else None,
     )
+
+
+@app.route("/clients", methods=["GET", "POST"])
+def clients():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        program = request.form.get("program", "")
+        if not name or program not in PROGRAMS:
+            return jsonify({"error": "name and a valid program are required"}), 400
+        db.add_client(name, program)
+    return render_template("clients.html", clients=db.list_clients(), programs=list(PROGRAMS.keys()))
+
+
+@app.route("/clients/<name>")
+def client_detail(name):
+    client = db.get_client(name)
+    if client is None:
+        return jsonify({"error": f"Client '{name}' not found"}), 404
+    plan = PROGRAMS.get(client["program"], {})
+    return render_template("client_detail.html", client=client, plan=plan)
+
+
+@app.route("/api/clients")
+def api_list_clients():
+    return jsonify(db.list_clients())
 
 
 @app.route("/api/programs")

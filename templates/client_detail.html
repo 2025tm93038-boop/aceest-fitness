@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ client.name }}</h2>
+<div class="card">
+  <p><strong>Program:</strong> {{ client.program }}</p>
+  <p><strong>Workout:</strong> {{ plan.workout }}</p>
+  <p><strong>Diet:</strong> {{ plan.diet }}</p>
+</div>
+<p><a href="/clients">&laquo; Back to clients</a></p>
+{% endblock %}
