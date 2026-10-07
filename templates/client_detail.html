@@ -5,6 +5,10 @@
   <p><strong>Program:</strong> {{ client.program }}</p>
   <p><strong>Workout:</strong> {{ plan.workout }}</p>
   <p><strong>Diet:</strong> {{ plan.diet }}</p>
+  <p>
+    <a href="/clients/{{ client.name }}/report.pdf">Download PDF report</a> &middot;
+    <a href="/clients/{{ client.name }}/chart.png">View adherence chart</a>
+  </p>
 </div>
 
 <div class="card">

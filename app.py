@@ -2,10 +2,15 @@
 ACEest Fitness & Gym - Flask Application
 Version 1.1: Web UI with templates; JSON API under /api.
 """
+import io
 import os
 from functools import wraps
 
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from flask import Flask, jsonify, redirect, render_template, request, send_file, session, url_for
+from fpdf import FPDF
 
 import db
 
@@ -136,6 +141,60 @@ def add_progress(name):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     return client_detail(name)
+
+
+@app.route("/clients/<name>/report.pdf")
+@login_required
+def client_report(name):
+    client = db.get_client(name)
+    if client is None:
+        return jsonify({"error": f"Client '{name}' not found"}), 404
+    plan = PROGRAMS.get(client["program"], {})
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.cell(0, 10, f"ACEest Client Report - {client['name']}", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "", 12)
+    pdf.multi_cell(
+        0, 8,
+        f"Program: {client['program']}\n\nWorkout Plan:\n{plan.get('workout', '')}\n\n"
+        f"Diet Plan:\n{plan.get('diet', '')}",
+    )
+
+    buffer = io.BytesIO(pdf.output())
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"{client['name']}_report.pdf",
+    )
+
+
+@app.route("/clients/<name>/chart.png")
+@login_required
+def client_chart(name):
+    if db.get_client(name) is None:
+        return jsonify({"error": f"Client '{name}' not found"}), 404
+    progress = db.list_progress(name)
+
+    fig, ax = plt.subplots(figsize=(6, 3))
+    if progress:
+        weeks = [p["week"] for p in progress]
+        adherence = [p["adherence"] for p in progress]
+        ax.plot(weeks, adherence, marker="o")
+    ax.set_title(f"{name} - Weekly Adherence")
+    ax.set_ylabel("%")
+    ax.set_ylim(0, 100)
+    ax.grid(True)
+    fig.tight_layout()
+
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format="png")
+    plt.close(fig)
+    buffer.seek(0)
+    return send_file(buffer, mimetype="image/png")
 
 
 @app.route("/api/clients")
