@@ -6,5 +6,40 @@
   <p><strong>Workout:</strong> {{ plan.workout }}</p>
   <p><strong>Diet:</strong> {{ plan.diet }}</p>
 </div>
+
+<div class="card">
+  <h3>Workouts</h3>
+  <form method="post" action="/clients/{{ client.name }}/workouts">
+    <input type="date" name="date" required>
+    <input name="workout_type" placeholder="Type (Strength, Cardio...)" required>
+    <input type="number" name="duration_min" placeholder="Minutes" required>
+    <input name="notes" placeholder="Notes">
+    <button type="submit">Log Workout</button>
+  </form>
+  <ul>
+    {% for w in workouts %}
+      <li>{{ w.date }} &mdash; {{ w.workout_type }} ({{ w.duration_min }} min) {{ w.notes }}</li>
+    {% else %}
+      <li>No workouts logged yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="card">
+  <h3>Weekly Adherence</h3>
+  <form method="post" action="/clients/{{ client.name }}/progress">
+    <input name="week" placeholder="e.g. 2026-W36" required>
+    <input type="number" name="adherence" min="0" max="100" placeholder="% adherence" required>
+    <button type="submit">Log Progress</button>
+  </form>
+  <ul>
+    {% for p in progress %}
+      <li>{{ p.week }}: {{ p.adherence }}%</li>
+    {% else %}
+      <li>No progress logged yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+
 <p><a href="/clients">&laquo; Back to clients</a></p>
 {% endblock %}

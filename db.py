@@ -33,6 +33,24 @@ def init_db(db_path=None):
             role TEXT NOT NULL DEFAULT 'admin'
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS workouts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_name TEXT NOT NULL,
+            date TEXT NOT NULL,
+            workout_type TEXT NOT NULL,
+            duration_min INTEGER NOT NULL,
+            notes TEXT
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_name TEXT NOT NULL,
+            week TEXT NOT NULL,
+            adherence INTEGER NOT NULL
+        )
+    """)
     cur.execute("SELECT 1 FROM users WHERE username = 'admin'")
     if cur.fetchone() is None:
         cur.execute(
@@ -63,6 +81,47 @@ def get_client(name, db_path=None):
 def list_clients(db_path=None):
     conn = get_connection(db_path)
     rows = conn.execute("SELECT * FROM clients ORDER BY name").fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def add_workout(client_name, date, workout_type, duration_min, notes="", db_path=None):
+    conn = get_connection(db_path)
+    conn.execute(
+        "INSERT INTO workouts (client_name, date, workout_type, duration_min, notes) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (client_name, date, workout_type, duration_min, notes),
+    )
+    conn.commit()
+    conn.close()
+
+
+def list_workouts(client_name, db_path=None):
+    conn = get_connection(db_path)
+    rows = conn.execute(
+        "SELECT * FROM workouts WHERE client_name = ? ORDER BY date DESC", (client_name,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def add_progress(client_name, week, adherence, db_path=None):
+    if not 0 <= adherence <= 100:
+        raise ValueError("adherence must be between 0 and 100")
+    conn = get_connection(db_path)
+    conn.execute(
+        "INSERT INTO progress (client_name, week, adherence) VALUES (?, ?, ?)",
+        (client_name, week, adherence),
+    )
+    conn.commit()
+    conn.close()
+
+
+def list_progress(client_name, db_path=None):
+    conn = get_connection(db_path)
+    rows = conn.execute(
+        "SELECT * FROM progress WHERE client_name = ? ORDER BY id", (client_name,)
+    ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 

@@ -62,7 +62,42 @@ def client_detail(name):
     if client is None:
         return jsonify({"error": f"Client '{name}' not found"}), 404
     plan = PROGRAMS.get(client["program"], {})
-    return render_template("client_detail.html", client=client, plan=plan)
+    return render_template(
+        "client_detail.html",
+        client=client,
+        plan=plan,
+        workouts=db.list_workouts(name),
+        progress=db.list_progress(name),
+    )
+
+
+@app.route("/clients/<name>/workouts", methods=["POST"])
+def add_workout(name):
+    if db.get_client(name) is None:
+        return jsonify({"error": f"Client '{name}' not found"}), 404
+    date = request.form.get("date", "")
+    workout_type = request.form.get("workout_type", "")
+    duration = request.form.get("duration_min", "0")
+    notes = request.form.get("notes", "")
+    if not date or not workout_type or not duration.isdigit():
+        return jsonify({"error": "date, workout_type and numeric duration_min are required"}), 400
+    db.add_workout(name, date, workout_type, int(duration), notes)
+    return client_detail(name)
+
+
+@app.route("/clients/<name>/progress", methods=["POST"])
+def add_progress(name):
+    if db.get_client(name) is None:
+        return jsonify({"error": f"Client '{name}' not found"}), 404
+    week = request.form.get("week", "")
+    adherence = request.form.get("adherence", "")
+    if not week or not adherence.isdigit():
+        return jsonify({"error": "week and numeric adherence are required"}), 400
+    try:
+        db.add_progress(name, week, int(adherence))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return client_detail(name)
 
 
 @app.route("/api/clients")
