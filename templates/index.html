@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Select a Program</h2>
+<form method="get" action="/plan">
+  <select name="program">
+    {% for name in programs %}
+      <option value="{{ name }}" {% if name == selected %}selected{% endif %}>{{ name }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">View Plan</button>
+</form>
+
+{% if plan %}
+<div class="card">
+  <h3>{{ selected }}</h3>
+  <p><strong>Workout:</strong> {{ plan.workout }}</p>
+  <p><strong>Diet:</strong> {{ plan.diet }}</p>
+</div>
+{% endif %}
+
+<p><a href="/clients">Admin: manage clients</a></p>
+{% endblock %}

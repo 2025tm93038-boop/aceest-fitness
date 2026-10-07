@@ -1,12 +1,11 @@
 """
 ACEest Fitness & Gym - Flask Application
-Version 1.0: Baseline program lookup (workout + diet chart per program).
+Version 1.1: Web UI with templates; JSON API under /api.
 """
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
-# Data store for program specification (mirrors the original desktop v1.0 prototype)
 PROGRAMS = {
     "Fat Loss": {
         "workout": "Mon: 5x5 Back Squat + AMRAP | Tue: EMOM 20min Assault Bike | "
@@ -28,19 +27,28 @@ PROGRAMS = {
 
 @app.route("/")
 def home():
-    return jsonify({
-        "message": "Welcome to ACEest Fitness & Gym API",
-        "available_programs": list(PROGRAMS.keys()),
-    })
+    return render_template("index.html", programs=list(PROGRAMS.keys()), plan=None, selected=None)
 
 
-@app.route("/programs")
-def list_programs():
+@app.route("/plan")
+def plan():
+    selected = request.args.get("program", "")
+    program = PROGRAMS.get(selected)
+    return render_template(
+        "index.html",
+        programs=list(PROGRAMS.keys()),
+        plan=program,
+        selected=selected if program else None,
+    )
+
+
+@app.route("/api/programs")
+def api_list_programs():
     return jsonify(list(PROGRAMS.keys()))
 
 
-@app.route("/programs/<program_name>")
-def get_program(program_name):
+@app.route("/api/programs/<program_name>")
+def api_get_program(program_name):
     program = PROGRAMS.get(program_name)
     if program is None:
         return jsonify({"error": f"Program '{program_name}' not found"}), 404

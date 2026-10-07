@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}ACEest Fitness & Gym{% endblock %}</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#1a1a1a; color:#eee; margin:0; }
+    header { background:#d4af37; color:#111; padding:20px; text-align:center; }
+    main { max-width:800px; margin:30px auto; padding:0 20px; }
+    select, input, button { padding:8px; margin:6px 0; font-size:1rem; }
+    .card { background:#2a2a2a; border-radius:8px; padding:16px; margin-top:16px; }
+    a { color:#d4af37; }
+  </style>
+</head>
+<body>
+  <header><h1>ACEest Fitness & Gym</h1></header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
