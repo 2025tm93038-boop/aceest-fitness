@@ -2,12 +2,46 @@
 ACEest Fitness & Gym - Flask Application
 Version 1.1: Web UI with templates; JSON API under /api.
 """
-from flask import Flask, jsonify, render_template, request
+import os
+from functools import wraps
+
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
 import db
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 db.init_db()
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("username"):
+            return redirect(url_for("login", next=request.path))
+        return view(*args, **kwargs)
+    return wrapped
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        user = db.verify_user(username, password)
+        if user:
+            session["username"] = user["username"]
+            session["role"] = user["role"]
+            return redirect(request.args.get("next") or url_for("clients"))
+        error = "Invalid credentials"
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("home"))
 
 PROGRAMS = {
     "Fat Loss": {
@@ -46,6 +80,7 @@ def plan():
 
 
 @app.route("/clients", methods=["GET", "POST"])
+@login_required
 def clients():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -57,6 +92,7 @@ def clients():
 
 
 @app.route("/clients/<name>")
+@login_required
 def client_detail(name):
     client = db.get_client(name)
     if client is None:
@@ -72,6 +108,7 @@ def client_detail(name):
 
 
 @app.route("/clients/<name>/workouts", methods=["POST"])
+@login_required
 def add_workout(name):
     if db.get_client(name) is None:
         return jsonify({"error": f"Client '{name}' not found"}), 404
@@ -86,6 +123,7 @@ def add_workout(name):
 
 
 @app.route("/clients/<name>/progress", methods=["POST"])
+@login_required
 def add_progress(name):
     if db.get_client(name) is None:
         return jsonify({"error": f"Client '{name}' not found"}), 404
