@@ -1,3 +1,4 @@
 Flask==3.0.3
 fpdf2==2.7.9
 matplotlib==3.9.0
+gunicorn==22.0.0
