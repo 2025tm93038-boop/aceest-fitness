@@ -57,7 +57,7 @@ jobs:
         # Tests are intentionally excluded from the production image (see .dockerignore),
         # so they're mounted in at test time rather than baked into the shipped artifact.
         run: |
-          docker run --rm \
+          docker run --rm --user root \
             -v "$(pwd)/tests:/app/tests" \
             -v "$(pwd)/pytest.ini:/app/pytest.ini" \
             --entrypoint sh aceest-fitness:ci -c \
