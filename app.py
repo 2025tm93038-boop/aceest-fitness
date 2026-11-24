@@ -18,6 +18,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 db.init_db()
 
+APP_VERSION = os.environ.get("APP_VERSION", "dev")
+
 
 def login_required(view):
     @wraps(view)
@@ -200,6 +202,18 @@ def client_chart(name):
 @app.route("/api/clients")
 def api_list_clients():
     return jsonify(db.list_clients())
+
+
+@app.route("/health")
+def health():
+    """Liveness/readiness probe target for Docker and Kubernetes."""
+    return jsonify({"status": "ok"})
+
+
+@app.route("/version")
+def version():
+    """Reports which build is serving traffic (used to verify deployments)."""
+    return jsonify({"version": APP_VERSION})
 
 
 @app.route("/api/programs")
