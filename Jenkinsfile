@@ -131,7 +131,8 @@ pipeline {
             when { expression { fileExists('k8s/rolling-update/deployment.yaml') } }
             steps {
                 sh '''
-                    kubectl apply -f k8s/rolling-update/
+                    sed "s|DOCKERHUB_USER|${DOCKER_USER}|g" k8s/rolling-update/deployment.yaml | kubectl apply -f -
+                    kubectl apply -f k8s/rolling-update/service.yaml
                     kubectl set image deployment/aceest-fitness \
                         aceest-fitness=${IMAGE_NAME}:${APP_VERSION}
                     if ! kubectl rollout status deployment/aceest-fitness --timeout=120s; then
