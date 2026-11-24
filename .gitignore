@@ -6,3 +6,8 @@ venv/
 *.db
 *.pdf
 instance/
+
+coverage.xml
+.coverage
+reports/
+htmlcov/

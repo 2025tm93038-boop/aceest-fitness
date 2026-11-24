@@ -125,3 +125,23 @@ def test_logout_clears_session(logged_in_client):
     logged_in_client.get("/logout")
     resp = logged_in_client.get("/clients", follow_redirects=False)
     assert resp.status_code == 302
+
+
+def test_health_endpoint_reports_ok(client):
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.get_json() == {"status": "ok"}
+
+
+def test_version_endpoint_reports_configured_version(client, monkeypatch):
+    import app as app_module
+    monkeypatch.setattr(app_module, "APP_VERSION", "9.9.9")
+    resp = client.get("/version")
+    assert resp.status_code == 200
+    assert resp.get_json() == {"version": "9.9.9"}
+
+
+def test_version_endpoint_defaults_to_dev(client):
+    resp = client.get("/version")
+    assert resp.status_code == 200
+    assert "version" in resp.get_json()
