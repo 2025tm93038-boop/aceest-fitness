@@ -38,3 +38,4 @@ pytest -v
 **Jenkins** (`Jenkinsfile`) is a second, independent BUILD gate. It pulls the latest code from GitHub and runs: Checkout, Environment setup, Lint, Unit Tests, Docker image build.
 
 Together, GitHub Actions gives fast feedback on every commit, and Jenkins re-validates the same code in a separate controlled build environment.
+
